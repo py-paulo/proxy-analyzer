@@ -1,6 +1,6 @@
 # Analyzer
 
-__**Analyzer**__ é um conjunto de ferramentas que faz o monitoramento, armazenamento e análise do tráfego *web* que passa pelo [proxy](https://github.com/py-paulo/proxy.py) para múltiplos propósitos, mas inicialmente pensado com foco em segurança, rastreando conexões suspeitas com hosts inseguros, trazendo métricas e informações valiosas para identificar comportamento de malwares em geral.
+__**Proxy Analyzer**__ é um conjunto de ferramentas que faz o monitoramento, armazenamento e análise do tráfego *web* que passa pelo [proxy](https://github.com/py-paulo/proxy.py) para múltiplos propósitos, mas inicialmente pensado com foco em segurança, rastreando conexões suspeitas com hosts inseguros, trazendo métricas e informações valiosas para identificar comportamento de malwares em geral.
 
 ## Instalação
 
@@ -15,7 +15,7 @@ Em seguida executar o script ``ini.sh``, caso sua plataforma seja *Windows* bast
 git clone https://github.com/py-paulo/proxy.py.git
 ```
 
-O **Analyzer** sobe os seguintes serviços:
+O **Proxy Analyzer** sobe os seguintes serviços:
 * **proxy** [8899]
     > Este projeto é um fork do [proxy.py](https://github.com/abhinavsingh/proxy.py) por ``abhinavsin`` com a alteração de um novo plugin para enviar todos os logs para a aplicação web ``kafka-proxy``.
 * **kafka-proxy** [8000]

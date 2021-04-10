@@ -15,14 +15,14 @@ console = Console()
 
 config = {
     "handlers": [
-        {"sink": sys.stdout, "level": "INFO"} # , format="{time:YYYY-MM-DD at HH:mm:ss} [{level}] {message}"},
+        {"sink": sys.stdout, "level": "INFO"}   # , format="{time:YYYY-MM-DD at HH:mm:ss} [{level}] {message}"},
     ]
 }
 logger.configure(**config)
 
 TMP_DIR = '/tmp/kafka.api/'
 PREFIX_TMP_NAME = 'kfk-'
-KAFKA_TOPIC = 'proxy'
+KAFKA_TOPIC = 'proxy.py'
 
 
 class InvalidRequest(Exception):
@@ -63,12 +63,12 @@ class WEBServer:
             self, 
             host='0.0.0.0',
             port=8000,
-            bootstrap_servers: list or str=['kafka:9092']) -> None:
+            bootstrap_servers: list or str = None) -> None:
         self.host = host
         self.port = port
         self.socket = None
         self.q = queue.Queue(maxsize=100)
-        self.bootstrap_servers = bootstrap_servers
+        self.bootstrap_servers = bootstrap_servers if bootstrap_servers is not None else ['kafka:9092']
         self.kafka_enable = False
 
         self.CONNECTION_COUNT = 100
@@ -105,9 +105,14 @@ class WEBServer:
                 time.sleep(1)
             else:
                 try:
-                    producer.send(KAFKA_TOPIC, json.dumps(body).encode())
+                    future = producer.send(KAFKA_TOPIC, json.dumps(body).encode())
+                    record_metadata = future.get(timeout=10)
                 except kafka.errors.KafkaTimeoutError as err:
                     logger.critical('[%s] %s' % (body, err))
+                except kafka.errors.KafkaError as err:
+                    logger.critical('ERR:%s:%s' % (err, body))
+                else:
+                    logger.info('successful [%s]' % body)
 
     def __listen(self):
         self.socket.listen(self.CONNECTION_COUNT)
@@ -147,21 +152,25 @@ class WEBServer:
                 body = {} if not isinstance(body, dict) else body
 
                 logger.info(
-                    '%s%s:%d "%s %s%s %s %d" "-" "%s"' % (
-                        '' if not body.get('ip') else '%s|' % body.get('ip'),
-                        socket_address[0], socket_address[1],
+                    '%s%s "%s %s%s %s %d" "-" "%s"' % (
+                        '' if not body.get('ip') else '%s|' % (
+                                body.get('ip')[0] if len(body.get('ip')) > 1 else body.get('ip')
+                            ),
+                        socket_address[0],
                         parser[0] if not body.get('method') else body.get('method'),
                         '' if not body.get('host') else body.get('host'),
                         parser[1] if not body.get('path') else body.get('path'), parser[2],
                         len(raw_data),
-                        parser[3].get('User-Agent')))
+                        parser[3].get('User-Agent')
+                    )
+                )
 
                 if self.kafka_enable:
                     self.q.put(parser[-1])
 
                 socket_cli.send(response.encode())
             except Exception as err:
-                logger.error(err)
+                logger.error('handler client: %s' % err)
 
             socket_cli.close()
             break

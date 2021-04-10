@@ -38,6 +38,20 @@ services:
     depends_on:
       - kafka
   
+  analyzer:
+    image: 'analyzer'
+    build: .
+    container_name: analyzer
+    hostname: 'analyzer'
+    networks:
+      - us-east-2
+    volumes:
+      - ./analyzer/:/code/analyzer
+    tty: true
+    command: ["/usr/bin/python3", "analyzer/consumer.py"]
+    depends_on:
+      - kafka
+  
   zookeeper:
     image: "docker.io/bitnami/zookeeper:3"
     hostname: 'zookeeper'
@@ -59,6 +73,7 @@ services:
       - KAFKA_LISTENERS=PLAINTEXT://:9092
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_HEAP_OPTS=-Xmx2g
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper

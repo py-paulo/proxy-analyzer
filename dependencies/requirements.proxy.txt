@@ -1,2 +1,4 @@
 typing-extensions==3.7.4.3
 kafka-python==2.0.2
+loguru==0.5.3
+rich==10.0.1
